@@ -1,6 +1,6 @@
 # ferol_restau
 
-Application web de présentation des menus, vins et catégories du **RESTAURANT PREMIER** (NTX Cuisine) : cuisine camerounaise authentique, préparée avec des ingrédients de qualité.
+Application web de présentation des menus, vins et catégories du **RESTAURANT PREMIER** (NTX Cuisine) : cuisine authentique, préparée avec des ingrédients de qualité.
 
 ![PHP](https://img.shields.io/badge/PHP-5-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-database-4479A1?logo=mysql&logoColor=white)
