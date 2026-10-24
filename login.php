@@ -1,85 +1,90 @@
+<?php
+require_once __DIR__ . '/config/constants.php';
 
-<?php 
-include('config/constants.php');
+$page_title = 'Connexion - RESTAURANT PREMIER';
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Session expirée, merci de renvoyer le formulaire.';
+    } else {
+        $username = trim($_POST['username'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+
+        if ($username === '' || $password === '') {
+            $errors[] = 'Merci de renseigner votre identifiant et votre mot de passe.';
+        } else {
+            // Requête préparée : plus aucune concaténation de valeurs utilisateur dans le SQL.
+            $user = db_fetch_one(
+                $conn,
+                'SELECT id, username, password FROM tbl_users WHERE username = ? LIMIT 1',
+                's',
+                [$username]
+            );
+
+            $loginOk = false;
+
+            if ($user) {
+                // password_hash()/password_verify() est le standard actuel.
+                // Les comptes créés avant cette mise à jour ont un mot de passe hashé en MD5 :
+                // on les authentifie une dernière fois via MD5 puis on migre silencieusement
+                // le mot de passe vers password_hash(), sans jamais forcer l'utilisateur à le changer.
+                if (password_verify($password, $user['password'])) {
+                    $loginOk = true;
+                } elseif (strlen($user['password']) === 32 && hash_equals($user['password'], md5($password))) {
+                    $loginOk = true;
+                    $newHash = password_hash($password, PASSWORD_DEFAULT);
+                    db_execute($conn, 'UPDATE tbl_users SET password = ? WHERE id = ?', 'si', [$newHash, $user['id']]);
+                }
+            }
+
+            if ($loginOk) {
+                session_regenerate_id(true); // empêche la fixation de session après connexion
+                $_SESSION['user'] = $user['username'];
+                $_SESSION['user_id'] = $user['id'];
+                set_flash('success', 'Connexion réussie. Bienvenue ' . $user['username'] . ' !');
+                header('Location: ' . SITEURL . 'index.php');
+                exit;
+            }
+
+            $errors[] = 'Identifiant ou mot de passe incorrect.';
+        }
+    }
+}
+
+$active_page = 'login';
+$page_hero_title = null;
+require __DIR__ . '/includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/admin.css?v=<?php echo time(); ?>">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/login-front.css">
-    <link rel="icon" 
-      type="image/png" 
-      href="img/logo_ntx.png">
+<div class="container py-5" style="max-width: 480px;">
+    <h2 class="text-center mb-4">Connexion</h2>
 
-    <title>Login</title>
-</head>
-<body>
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <?php foreach ($errors as $error): ?>
+                <div><?php echo e($error); ?></div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
-
-        <!-- Login Form et recupération html des variables de connexion -->
-<div class="container">
-  <div class="brand-logo"></div>
-  <div class="brand-title">User Login</div>
-  
-  <form action="" class="inputs" method="POST" name="form1">
-    <label>Username</label>
-    <input type="text" placeholder="" name="username" required>
-    <label>Password</label>
-    <input type="password" name="password">
-    <br>
-   
-        Je n'ai pas de compte?
-        <br>
-        <a href="register.php">Creer un compte</a>
-    
-    <button type="submit" name="submit" value="login">Login</button>  
-  </form>
+    <form action="" method="POST" novalidate>
+        <?php csrf_field(); ?>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="username" name="username" placeholder="Identifiant" required
+                   value="<?php echo isset($_POST['username']) ? e($_POST['username']) : ''; ?>">
+            <label for="username">Identifiant</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" required>
+            <label for="password">Mot de passe</label>
+        </div>
+        <button type="submit" name="submit" value="login" class="btn btn-primary w-100 py-2">Se connecter</button>
+        <p class="text-center mt-3">
+            Pas encore de compte ? <a href="<?php echo SITEURL; ?>register.php">Créer un compte</a>
+        </p>
+    </form>
 </div>
 
-
-
-</body>
-</html>
-
-<?php 
-    if(isset($_POST['submit']))
-    {
-
-       // $username = $_POST['username'];
-       // $password = md5($_POST['password']); //md5 encryption
-
-       //Preventing From SQL Injection
-
-       $username = mysqli_real_escape_string($conn, $_POST['username']);
-       $password = mysqli_real_escape_string($conn, md5($_POST['password']));
-        // selection de tous les utilisateurs de la table tbl_users et retour de celui donc le username entrée correspond dans cette table
-        $sql = "SELECT * FROM tbl_users WHERE username='$username' AND password='$password'";
-        $res = mysqli_query($conn, $sql);
-        $count = mysqli_num_rows($res);
-
-        if($count == 1)
-        {
-            //User found, login success
-            $_SESSION['login']  = "<div class='success'>Login Successful</div>";
-            $_SESSION['user'] = $username;
-         
-            header('location:'.SITEURL.'index.php'); //redirection vers l'accueil du site index.php
-        }
-        else // echec de connexion redirection vers login.php
-        {
-          echo "<script>
-                alert('Wrong Username or Password'); 
-                window.location.href='login.php';
-                </script>";
-        
-        }
-      }
-
-?>
+<?php require __DIR__ . '/includes/footer.php'; ?>

@@ -1,31 +1,116 @@
 # ferol_restau
 
-L’application ferol_restau est une application web qui représente les menus, vins et autres d’un restaurant nommé RESTAURANT PREMIER.
+Application web de présentation des menus, vins et catégories du **RESTAURANT PREMIER** (NTX Cuisine) : cuisine camerounaise authentique, préparée avec des ingrédients de qualité.
 
-Elle est faite en langage Web Backend php5 et Frontend html+ le framework css Bootstrap qui prend les liens cdn (en ligne, mode connecté) ou SCSS (non connecté) et les librairies javascript de bootstrap sont importées. C’est une application faite en SPA (Single Page Application): toutes les fonctionnalités sont représentées sur la page d’accueil.
+![PHP](https://img.shields.io/badge/PHP-5-777BB4?logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-database-4479A1?logo=mysql&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-CSS%20%2F%20JS-7952B3?logo=bootstrap&logoColor=white)
 
-## Fonctionnement
+![Page d'accueil](screenshots/home.png)
 
-Pour le fonctionnement de l’application ferol_restau:
+## Sommaire
 
-1. Copier le dossier ferol_restau dans le disque C; C:\xampp\htdoc.
+- [Présentation](#présentation)
+- [Technologies](#technologies)
+- [Installation](#installation)
+- [Fonctionnalités](#fonctionnalités)
+- [Base de données](#base-de-données)
+- [Structure du projet](#structure-du-projet)
+- [Captures d'écran](#captures-décran)
+- [Auteur](#auteur)
 
-2. Démarrer xampp ainsi que les serveurs :
-   - Base de données MySQL (start MySQL) 
-   - Web Apache (start apache).
+## Présentation
 
-3. Créer et importer la base de données food-order dans phpMyAdmin.
+**ferol_restau** est une application web de type **SPA (Single Page Application)** :
+toutes les fonctionnalités sont accessibles depuis la page d'accueil (`index.php`)
+grâce au menu de navigation (Home, About, Categories, Menu, Contact, Login).
 
-4. Ouvrir un onglet du navigateur et lancer l’application en local:
-   - localhost/ferol_restau.
+## Technologies
 
-Sur la page principale (index.php), on y voit le menu de navigation (lien vers les pages de l’appli) vers les différentes pages de l’application web.
+| Couche          | Technologie                                                   |
+|-----------------|---------------------------------------------------------------|
+| Backend         | PHP 5                                                         |
+| Frontend        | HTML, Bootstrap (CSS + librairies JavaScript)                 |
+| Styles          | Liens CDN (mode connecté) ou SCSS local (mode hors ligne)     |
+| Base de données | MySQL (gérée via phpMyAdmin)                                  |
+| Serveur local   | XAMPP (Apache + MySQL)                                        |
 
-### Fonctionnalités de chaque page de l’application.
+## Installation
 
-- Le lien Home affiche tous les éléments du site sur une page.
-- Le lien About (lien vers about.php) donne une description globale du restaurant.
-- La page categories présente les différents menus du restaurant stockés dans la table tbl_category.
-- La page menu (lien vers menu.php) affiche les différents menus de la table tbl_food.
-- La page contact (lien vers contact.php) elle permet aux utilisateurs et visiteurs de faire des posts sur l’appli web, ces posts sont stockés dans la table « message ».
-- La page Login permet aux utilisateurs de se connecter (s’ils sont enregistrés dans la table users) ou s’inscrire lien vers register.php au cas contraire.
+### Prérequis
+
+- [XAMPP](https://www.apachefriends.org/) (Apache + MySQL)
+- Un navigateur web récent
+
+### Étapes
+
+1. **Copier** le dossier `ferol_restau` dans `C:\xampp\htdocs`.
+2. **Démarrer** XAMPP, puis lancer les services `Apache` et `MySQL`.
+3. **Créer et importer** la base de données `food-order` depuis phpMyAdmin
+   (`http://localhost/phpmyadmin`) avec le fichier SQL du dossier `sql/`.
+4. **Configurer** la connexion à la base de données dans le dossier `config/`
+   (hôte, utilisateur, mot de passe).
+5. **Lancer** l'application :
+
+   ```
+   http://localhost/ferol_restau
+   ```
+
+## Fonctionnalités
+
+| Page       | Fichier          | Description                                                      |
+|------------|------------------|------------------------------------------------------------------|
+| Home       | `index.php`      | Affiche l'ensemble des éléments du site sur une seule page       |
+| About      | `about.php`      | Présentation générale du restaurant                              |
+| Categories | `categories.php` | Présente les différents menus (table `tbl_category`)             |
+| Menu       | `menu.php`       | Affiche les plats (table `tbl_food`)                             |
+| Contact    | `contact.php`    | Permet aux visiteurs de poster des messages (table `message`)    |
+| Login      | `login.php`      | Connexion des utilisateurs enregistrés (table `users`)           |
+| Register   | `register.php`   | Inscription des nouveaux utilisateurs                            |
+| Logout     | `logout.php`     | Déconnexion                                                      |
+
+## Base de données
+
+Nom de la base : `food-order`
+
+| Table          | Rôle                                       |
+|----------------|--------------------------------------------|
+| `tbl_category` | Catégories de menus                        |
+| `tbl_food`     | Plats du restaurant                        |
+| `message`      | Messages envoyés via le formulaire contact |
+| `users`        | Utilisateurs enregistrés                   |
+
+## Structure du projet
+
+```
+ferol_restau/
+├── config/          # Configuration (connexion base de données)
+├── css/             # Feuilles de style
+├── scss/            # Sources SCSS (mode hors ligne)
+├── js/              # Scripts JavaScript
+├── lib/             # Librairies tierces
+├── images/          # Images du site
+├── img/             # Images du site
+├── includes/        # Composants PHP réutilisables
+├── sql/             # Script d'import de la base de données
+├── index.php
+├── about.php
+├── categories.php
+├── menu.php
+├── contact.php
+├── message.php
+├── login.php
+├── register.php
+├── logout.php
+└── README.md
+```
+
+## Captures d'écran
+
+| Accueil | Services | À propos |
+|---------|----------|----------|
+| ![Accueil](screenshots/home.png) | ![Services](screenshots/services.png) | ![À propos](screenshots/about.png) |
+
+## Auteur
+
+**Ferol Tatang Fomekon** — [GitHub : TatangF](https://github.com/TatangF)

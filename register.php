@@ -1,104 +1,121 @@
+<?php
+require_once __DIR__ . '/config/constants.php';
 
-<?php 
-include('config/constants.php');
+$page_title = 'Créer un compte - RESTAURANT PREMIER';
+$errors = [];
+$old = ['name' => '', 'email' => '', 'add1' => '', 'city' => '', 'phone' => '', 'username' => ''];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_account'])) {
+
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Session expirée, merci de renvoyer le formulaire.';
+    } else {
+        $name     = trim($_POST['name'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+        $add1     = trim($_POST['add1'] ?? '');
+        $city     = trim($_POST['city'] ?? '');
+        $phone    = trim($_POST['phone'] ?? '');
+        $username = trim($_POST['username'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+
+        $old = compact('name', 'email', 'add1', 'city', 'phone', 'username');
+
+        // --- Validation côté serveur (indispensable : la validation HTML5 seule peut être contournée) ---
+        if ($name === '' || $email === '' || $add1 === '' || $city === '' || $phone === '' || $username === '' || $password === '') {
+            $errors[] = 'Merci de remplir tous les champs.';
+        }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Adresse email invalide.';
+        }
+        if ($phone !== '' && !preg_match('/^\+?[0-9 ]{6,20}$/', $phone)) {
+            $errors[] = 'Numéro de téléphone invalide.';
+        }
+        if (strlen($password) < 8) {
+            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+        }
+        if (strlen($username) < 3) {
+            $errors[] = "L'identifiant doit contenir au moins 3 caractères.";
+        }
+
+        if (empty($errors)) {
+            $existing = db_fetch_one(
+                $conn,
+                'SELECT id FROM tbl_users WHERE username = ? LIMIT 1',
+                's',
+                [$username]
+            );
+
+            if ($existing) {
+                $errors[] = 'Ce nom d\'utilisateur existe déjà. Merci d\'en choisir un autre.';
+            } else {
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+                db_execute(
+                    $conn,
+                    'INSERT INTO tbl_users (name, email, add1, city, phone, username, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    'sssssss',
+                    [$name, $email, $add1, $city, $phone, $username, $passwordHash]
+                );
+
+                set_flash('success', 'Compte créé avec succès. Vous pouvez vous connecter.');
+                header('Location: ' . SITEURL . 'login.php');
+                exit;
+            }
+        }
+    }
+}
+
+$active_page = null;
+$page_hero_title = null;
+require __DIR__ . '/includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/admin.css?v=<?php echo time(); ?>">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/login-front.css">
-    <link rel="icon" 
-      type="image/png" 
-      href="img/logo_ntx.png">
+<div class="container py-5" style="max-width: 560px;">
+    <h2 class="text-center mb-4">Créer un compte</h2>
 
-    <title>Registration</title>
-</head>
-<body>
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <?php foreach ($errors as $error): ?>
+                <div><?php echo e($error); ?></div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 
-
-        <!-- Login Form -->
-        <!-- formulaire d'enregistrement recuperation des entrées html d'utilisateurs -->
-<div class="container">
-  <div class="brand-title">Registration</div>
-  
-  <form action="" class="inputs" method="POST" name="form1">
-    <label>Name</label>
-    <input type="text" placeholder="" name="name" required>
-    <label>Email ID</label>
-    <input type="email" name="email" required>
-    <label>Address</label>
-    <input type="text" name="add1" required>
-    <label>City</label>
-    <input type="text" name="city" required>
-    <label>Phone</label>
-    <input type="number" name="phone" required>
-    <label>Username</label>
-    <input type="text" name="username" required>
-    <label>Password</label>
-    <input type="password" name="password" required>
-
-    <br>
-    
-    <button type="submit" name="create_account" value="create_account">Create Account</button>  
-  </form>
+    <form action="" method="POST" novalidate>
+        <?php csrf_field(); ?>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Nom" required value="<?php echo e($old['name']); ?>">
+            <label for="name">Nom</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Email" required value="<?php echo e($old['email']); ?>">
+            <label for="email">Email</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="add1" name="add1" placeholder="Adresse" required value="<?php echo e($old['add1']); ?>">
+            <label for="add1">Adresse</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="city" name="city" placeholder="Ville" required value="<?php echo e($old['city']); ?>">
+            <label for="city">Ville</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Téléphone" required value="<?php echo e($old['phone']); ?>">
+            <label for="phone">Téléphone</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="username" name="username" placeholder="Identifiant" required value="<?php echo e($old['username']); ?>">
+            <label for="username">Identifiant</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Mot de passe" minlength="8" required>
+            <label for="password">Mot de passe (8 caractères minimum)</label>
+        </div>
+        <button type="submit" name="create_account" value="create_account" class="btn btn-primary w-100 py-2">Créer mon compte</button>
+        <p class="text-center mt-3">
+            Déjà inscrit ? <a href="<?php echo SITEURL; ?>login.php">Se connecter</a>
+        </p>
+    </form>
 </div>
 
-</body>
-</html>
-
-<?php 
-    if(isset($_POST['create_account']))
-    {
-      //  recuperation des variables utilisateurs entrées php 
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $add1 = $_POST['add1'];
-        $city = $_POST['city'];
-        $phone = $_POST['phone'];
-        $username = $_POST['username'];
-        $password = md5($_POST['password']); //md5 encryption
-
-        //requete de sélection de tous les utilisateurs de la BD   
-        $check_duplicate = "SELECT username FROM tbl_users
-						    WHERE username = '$username'";
-	      $res_check_duplicate = mysqli_query($conn, $check_duplicate);  //vérification de la non correspondance du username
-
-        $rows_check_duplicate = mysqli_num_rows($res_check_duplicate);
-	      if($rows_check_duplicate>0) //si le username entrée existe dejà retourner le message html ci-dessous
-	      {
-		      echo "<script>
-                alert('Username already exists! Try a different username.'); 
-                window.location.href='register.php';
-                </script>";
-	      }
-	    else //s'il n'existe pas encore, exécuté la requette d'insertion des informations entrées dans la table tbl_users
-	    {
-	  	$sql = "INSERT INTO tbl_users SET
-        name='$name',
-        email = '$email',
-        add1 = '$add1',
-        city = '$city',
-        phone = '$phone',
-        username='$username',
-        password='$password'
-    	";
-
-        $res = mysqli_query($conn, $sql);  
-        echo "<script>
-                alert('Account Created'); 
-                window.location.href='login.php';  
-                </script>";
-
-                
-	}
-    //header("location:".SITEURL.'login.php');
-
-    }
-?>
+<?php require __DIR__ . '/includes/footer.php'; ?>
