@@ -6,7 +6,7 @@ Application web de présentation des menus, vins et catégories du **RESTAURANT 
 ![MySQL](https://img.shields.io/badge/MySQL-database-4479A1?logo=mysql&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-CSS%20%2F%20JS-7952B3?logo=bootstrap&logoColor=white)
 
-![Page d'accueil](screenshots/home.png)
+![Page d'accueil](images/screenshots/home.png)
 
 ## Sommaire
 
@@ -109,7 +109,7 @@ ferol_restau/
 
 | Accueil | Services | À propos |
 |---------|----------|----------|
-| ![Accueil](screenshots/home.png) | ![Services](screenshots/services.png) | ![À propos](screenshots/about.png) |
+| ![Accueil](/images/screenshots/home.png) | ![Services](/images/screenshots/services.png) | ![À propos](/images/screenshots/about.png) |
 
 ## Auteur
 
